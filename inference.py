@@ -11,8 +11,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 batch_size = 64
-new_data_tensor = torch.tensor(np.load('часть_19.npy'), dtype=torch.float32).to(device)
+input_size = 600  # Размерность входных данных (200x3 = 600)
+hidden_size = 256  # Размер скрытого слоя LSTM
+output_size = 15  # Размерность выходных данных (15 параметров)
 
+new_data_tensor = torch.tensor(np.load('часть_19.npy'), dtype=torch.float32).to(device)
 
 class QuantileLSTMModel(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, num_layers=2, dropout_prob=0.2):
@@ -50,9 +53,7 @@ class MeanLSTMModel(nn.Module):
         output = output.view(output.size(0), -1, 1)
         return output
 
-input_size = 600  # Размерность входных данных (200x3 = 600)
-hidden_size = 256  # Размер скрытого слоя LSTM
-output_size = 15  # Размерность выходных данных (15 параметров)
+
 class CustomNewDataset(Dataset):
     def __init__(self, X):
         self.X = X
@@ -91,13 +92,13 @@ predictions_quantile_75 = []
 predictions_quantile_90 = []
 
 mean_model.eval()
-quantile_model_10.eval()  # Переведем модель в режим оценки (не обучения)
+quantile_model_10.eval()
 quantile_model_25.eval()
 quantile_model_50.eval()
 quantile_model_75.eval()
 quantile_model_90.eval()
 
-with torch.no_grad():  # Не считаем градиенты, так как это предсказания, не обучение
+with torch.no_grad():
     for batch_idx, batch in enumerate(new_loader):
         inputs = batch['input'].to(device)
         outputs_mean = mean_model(inputs)
